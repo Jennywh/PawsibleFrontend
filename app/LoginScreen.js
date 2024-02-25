@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text } from 'react-native';
+import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text, SwitchComponent } from 'react-native';
 
-const LoginScreen = ({ onSwitchScreen }) => {
+const LoginScreen = ({ route, navigation }) => {
+
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 
@@ -11,19 +12,18 @@ const LoginScreen = ({ onSwitchScreen }) => {
 		// Add your login logic here
 		console.log('Email:', email);
 		console.log('Password:', password);
+        navigation.replace('MainApp');
 	};
 	return (
 		<View style={styles.container}>
-			{/* ... (TextInputs) */}
 			<TextInput placeholder='Email' value={email} onChangeText={setEmail} style={styles.input} />
 			<TextInput placeholder='Password' value={password} secureTextEntry onChangeText={setPassword} style={styles.input} />
 			<TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
 				<Text style={styles.primaryButtonText}>Log In</Text>
 			</TouchableOpacity>
-			<TouchableOpacity style={styles.secondaryAction} onPress={() => onSwitchScreen('signup')}>
+			<TouchableOpacity style={styles.secondaryAction} onPress={() => navigation.replace('SignUp')}>
 				<Text style={styles.secondaryActionText}>Go to Sign Up</Text>
 			</TouchableOpacity>
-			{/* ... (Rest of your components) */}
 		</View>
 	);
 };

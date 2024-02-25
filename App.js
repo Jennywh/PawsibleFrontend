@@ -1,31 +1,44 @@
-import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Provider as PaperProvider } from 'react-native-paper';
 
+// Import your custom components/screens
 import LoginScreen from './app/LoginScreen';
 import SignupScreen from './app/SignupScreen';
+import HomeScreen from './app/HomeScreen'; 
+import CommunityScreen from './app/CommunityScreen';
+import MessageScreen from './app/MessageScreen';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const MainAppTabs = () => {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="HomeScreen" component={HomeScreen} />
+      <Tab.Screen name="Community" component={CommunityScreen} />
+      <Tab.Screen name="MessageScreen" component={MessageScreen} />
+    </Tab.Navigator>
+  );
+};
 
 const App = () => {
-  const [currentScreen, setCurrentScreen] = useState('login');
-
-  const switchScreen = (screen) => {
-    setCurrentScreen(screen);
-  };
-
   return (
-    currentScreen === 'login' ? 
-    <LoginScreen onSwitchScreen={() => switchScreen('signup')} /> :
-    <SignupScreen onSwitchScreen={() => switchScreen('login')} />
-    
+    <PaperProvider>
+
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignupScreen} options={{ headerShown: false }} />
+        {/* After successful login/signup, navigate to 'MainApp' */}
+        <Stack.Screen name="MainApp" component={MainAppTabs} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
+    </PaperProvider>
+
   );
 };
 
 export default App;
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

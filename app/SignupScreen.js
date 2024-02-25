@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text } from 'react-native';
 
-const SignupScreen = ({ onSwitchScreen }) => {
+const SignupScreen = ({ route, navigation }) => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [age, setAge] = useState('');
@@ -26,7 +26,7 @@ const SignupScreen = ({ onSwitchScreen }) => {
 			<TouchableOpacity style={styles.primaryButton} onPress={handleSignup}>
 				<Text style={styles.primaryButtonText}>Sign Up</Text>
 			</TouchableOpacity>
-			<TouchableOpacity style={styles.secondaryAction} onPress={() => onSwitchScreen('signup')}>
+			<TouchableOpacity style={styles.secondaryAction}  onPress={() => navigation.replace('Login')}>
 				<Text style={styles.secondaryActionText}>Go to Log In</Text>
 			</TouchableOpacity>
 		</View>
