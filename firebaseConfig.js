@@ -4,7 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'; // Import Firestore
 
 const firebaseConfig = {
-	apiKey: 'AIzaSyBz4lUmxAgBO3F3ul1cefEE3vmunvXhaWg',
+	apiKey: '',
 	authDomain: 'pawsible-47dfd.firebaseapp.com',
 	projectId: 'pawsible-47dfd',
 	storageBucket: 'pawsible-47dfd.appspot.com',
