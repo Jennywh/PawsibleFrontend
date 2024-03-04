@@ -1,77 +1,162 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text } from 'react-native';
+import { ScrollView, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { TextInput, Button, Text, Divider, Avatar, ProgressBar } from 'react-native-paper';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Make sure to install this package
+import { auth, db } from '../firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
-const SignupScreen = ({ route, navigation }) => {
+const SignupScreen = ({ navigation }) => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [username, setUsername] = useState('');
+	const [profilePicture, setProfilePicture] = useState('');
 	const [age, setAge] = useState('');
+	const [petName, setPetName] = useState('');
+	const [petType, setPetType] = useState('');
+	const [petBreed, setPetBreed] = useState('');
 	const [location, setLocation] = useState('');
+	const [petInfo, setPetInfo] = useState('');
+	const [availability, setAvailability] = useState('');
+	const [emergencyContact, setEmergencyContact] = useState('');
+	const [aboutMe, setAboutMe] = useState('');
+	const [preferences, setPreferences] = useState('');
+	const [currentStep, setCurrentStep] = useState(1); // Start at the first step
 
-	// Add your sign-up with Google logic here
-
-	const handleSignup = () => {
-		// Add your signup logic here
-		console.log('Email:', email);
-		console.log('Password:', password);
-        console.log('Age:', age);
-        console.log('Location:', location);
+	const renderStepContent = step => {
+		switch (step) {
+			case 1:
+				return (
+					<View>
+						<TextInput label='Username' value={username} onChangeText={setUsername} style={styles.input} mode='outlined' />
+						<TextInput label='Email' value={email} onChangeText={setEmail} style={styles.input} mode='outlined' />
+						<TextInput label='Password' value={password} onChangeText={setPassword} secureTextEntry style={styles.input} mode='outlined' />
+						<Button mode='contained' onPress={() => setCurrentStep(currentStep + 1)} style={styles.button}>
+							Next
+						</Button>
+					</View>
+				);
+			case 2:
+				return (
+					<View>
+						<TouchableOpacity
+							onPress={() => {
+								/* Logic to add profile picture */
+							}}
+						>
+							<Avatar.Icon size={80} icon='camera' style={styles.avatar} />
+						</TouchableOpacity>
+						<TextInput label='Age' value={age} onChangeText={setAge} keyboardType='numeric' style={styles.input} mode='outlined' />
+						<Button mode='contained' onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
+							Back
+						</Button>
+						<Button mode='contained' onPress={() => setCurrentStep(currentStep + 1)} style={styles.button}>
+							Next
+						</Button>
+					</View>
+				);
+			case 3:
+				return (
+					<View>
+						<TextInput label='Pet Name' value={petName} onChangeText={setPetName} style={styles.input} mode='outlined' />
+						<TextInput label='Pet Type (e.g., Dog, Cat)' value={petType} onChangeText={setPetType} style={styles.input} mode='outlined' />
+						<TextInput label='Breed' value={petBreed} onChangeText={setPetBreed} style={styles.input} mode='outlined' />
+						<Button mode='contained' onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
+							Back
+						</Button>
+						<Button mode='contained' onPress={handleSignup} style={styles.button}>
+							Sign Up
+						</Button>
+					</View>
+				);
+			default:
+				return null;
+		}
 	};
+
+	const handleSignup = async () => {
+		if (!email || !password || !username) {
+			alert('Username, email, and password are required');
+			return;
+		}
+		try {
+			const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+			const user = userCredential.user;
+			await setDoc(doc(db, 'users', user.uid), {
+				username,
+				email,
+				location,
+				petInfo,
+				availability,
+				emergencyContact,
+				aboutMe,
+				preferences
+				// Include other fields as necessary
+			});
+			navigation.replace('MainApp');
+		} catch (error) {
+			alert(error.message || 'An error occurred. Please try again.');
+		}
+	};
+
 	return (
-		<View style={styles.container}>
-			<TextInput placeholder='Email' value={email} onChangeText={setEmail} style={styles.input} />
-			<TextInput placeholder='Password' value={password} secureTextEntry onChangeText={setPassword} style={styles.input} />
-			<TextInput placeholder='Age' value={age} onChangeText={setAge} style={styles.input} />
-			<TextInput placeholder='Location' value={location} onChangeText={setLocation} style={styles.input} />
-			{/* Add more fields as necessary */}
-			<TouchableOpacity style={styles.primaryButton} onPress={handleSignup}>
-				<Text style={styles.primaryButtonText}>Sign Up</Text>
-			</TouchableOpacity>
-			<TouchableOpacity style={styles.secondaryAction}  onPress={() => navigation.replace('Login')}>
-				<Text style={styles.secondaryActionText}>Go to Log In</Text>
-			</TouchableOpacity>
-		</View>
+		<ScrollView contentContainerStyle={styles.container}>
+			<ProgressBar style={styles.progressBar} styleAttr='Horizontal' color='#6200EE' progress={currentStep / 3} />
+			{renderStepContent(currentStep)}
+			{/* go to login */}
+			<View style={styles.section}>
+				<Divider style={styles.divider} />
+				<Text style={styles.sectionTitle}>Already have an account?</Text>
+				<Button onPress={() => navigation.replace('Login')} style={styles.linkButton}>
+					Login
+				</Button>
+			</View>
+		</ScrollView>
 	);
 };
-
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		justifyContent: 'center', // centers in the flex direction (vertical by default)
-		alignItems: 'center', // centers horizontally
-		padding: 20
+		justifyContent: 'center',
+		// alignItems: 'center',
+		padding: 20,
+		// paddingTop: 80
 	},
 	input: {
-		height: 40,
-		width: '100%', // Use the full width of the screen
-		marginVertical: 10, // Adds spacing between inputs
-		paddingLeft: 10,
-		borderWidth: 1,
-		borderColor: 'grey',
-		borderRadius: 5
-	},
-	// Add other styles for buttons and text if needed
-	primaryButton: {
-		height: 50,
 		width: '100%',
-		backgroundColor: '#007bff', // Bootstrap primary color for example
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		marginTop: 10 // or more based on your design
+		marginVertical: 10
 	},
-	primaryButtonText: {
-		color: 'white',
-		fontSize: 18,
-		fontWeight: 'bold'
+	button: {
+		marginTop: 10
 	},
-	secondaryAction: {
+	linkButton: {
 		marginTop: 20,
-		justifyContent: 'center',
-		alignItems: 'center'
+		padding: 0
 	},
-	secondaryActionText: {
-		color: '#007bff', // Same as button to indicate action
-		fontSize: 16
+	
+	input: {
+		marginBottom: 10
+	},
+	button: {
+		marginTop: 20
+	},
+	linkButton: {
+		marginTop: 10
+	},
+	section: {
+		marginBottom: 20
+	},
+	sectionTitle: {
+		fontSize: 18,
+		fontWeight: 'bold',
+		marginBottom: 10
+	},
+	divider: {
+		marginBottom: 20
+	},
+	avatar: {
+		alignSelf: 'center',
+		marginBottom: 20
 	}
 });
 

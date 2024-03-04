@@ -1,29 +1,74 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Button, TouchableOpacity, Text, SwitchComponent } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { TextInput, Button, Snackbar, Text } from 'react-native-paper';
+import { auth, db } from '../firebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
-const LoginScreen = ({ route, navigation }) => {
-
+const LoginScreen = ({ navigation }) => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [visible, setVisible] = useState(false);
+	const [errorMessage, setErrorMessage] = useState('');
 
-	// Add your sign-in with Google logic here
+	const handleLogin = async () => {
+		if (email.trim() === '' || password.trim() === '') {
+			setErrorMessage('Email and password cannot be empty.');
+			setVisible(true);
+			return;
+		}
 
-	const handleLogin = () => {
-		// Add your login logic here
-		console.log('Email:', email);
-		console.log('Password:', password);
-        navigation.replace('MainApp');
+		try {
+			const userCredential = await signInWithEmailAndPassword(auth, email, password);
+			const user = userCredential.user;
+			console.log('User:', user);
+
+			// After successful login, fetch user data from Firestore
+
+			const userDocRef = doc(db, 'users', user.uid);
+			console.log('User doc ref:', userDocRef);
+			const userDocSnap = await getDoc(userDocRef);
+
+			if (userDocSnap.exists()) {
+				const userData = userDocSnap.data();
+				console.log('User data:', userData);
+				// You can now use userData within your app, for example:
+				// setUserData(userData); // if you have a state to hold user data
+			} else {
+				console.log('No such user data in Firestore!');
+			}
+
+			navigation.replace('MainApp');
+		} catch (error) {
+			setErrorMessage(error.message || 'An error occurred. Please try again.');
+			setVisible(true);
+		}
 	};
+	const onDismissSnackBar = () => setVisible(false);
+
 	return (
 		<View style={styles.container}>
-			<TextInput placeholder='Email' value={email} onChangeText={setEmail} style={styles.input} />
-			<TextInput placeholder='Password' value={password} secureTextEntry onChangeText={setPassword} style={styles.input} />
-			<TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
-				<Text style={styles.primaryButtonText}>Log In</Text>
-			</TouchableOpacity>
-			<TouchableOpacity style={styles.secondaryAction} onPress={() => navigation.replace('SignUp')}>
-				<Text style={styles.secondaryActionText}>Go to Sign Up</Text>
-			</TouchableOpacity>
+			<TextInput label='Email' value={email} onChangeText={setEmail} style={styles.input} mode='outlined' />
+			<TextInput label='Password' value={password} onChangeText={setPassword} secureTextEntry style={styles.input} mode='outlined' />
+			<Button mode='contained' onPress={handleLogin} style={styles.button}>
+				Login
+			</Button>
+			<Button onPress={() => navigation.replace('SignUp')} style={styles.linkButton}>
+				Go to Sign Up
+			</Button>
+			<Snackbar
+				visible={visible}
+				onDismiss={onDismissSnackBar}
+				duration={3000}
+				action={{
+					label: 'Close',
+					onPress: () => {
+						setVisible(false);
+					}
+				}}
+			>
+				{errorMessage}
+			</Snackbar>
 		</View>
 	);
 };
@@ -31,43 +76,20 @@ const LoginScreen = ({ route, navigation }) => {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		justifyContent: 'center', // centers in the flex direction (vertical by default)
-		alignItems: 'center', // centers horizontally
+		justifyContent: 'center',
+		alignItems: 'center',
 		padding: 20
 	},
 	input: {
-		height: 40,
-		width: '100%', // Use the full width of the screen
-		marginVertical: 10, // Adds spacing between inputs
-		paddingLeft: 10,
-		borderWidth: 1,
-		borderColor: 'grey',
-		borderRadius: 5
-	},
-	// Add other styles for buttons and text if needed
-
-	primaryButton: {
-		height: 50,
 		width: '100%',
-		backgroundColor: '#007bff', // Bootstrap primary color for example
-		justifyContent: 'center',
-		alignItems: 'center',
-		borderRadius: 5,
-		marginTop: 10 // or more based on your design
+		marginVertical: 10
 	},
-	primaryButtonText: {
-		color: 'white',
-		fontSize: 18,
-		fontWeight: 'bold'
+	button: {
+		marginTop: 10
 	},
-	secondaryAction: {
+	linkButton: {
 		marginTop: 20,
-		justifyContent: 'center',
-		alignItems: 'center'
-	},
-	secondaryActionText: {
-		color: '#007bff', // Same as button to indicate action
-		fontSize: 16
+		padding: 0
 	}
 });
 

@@ -1,48 +1,116 @@
 import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import { Avatar, Card, Title, Paragraph, Button, Dialog, Portal, Text } from 'react-native-paper';
+import { Avatar, Card, Title, Paragraph, Button, Dialog, Portal, Text, IconButton, Divider } from 'react-native-paper';
+import { MaterialCommunityIcons } from 'react-native-vector-icons';
 
 // Fake Data
 const userInfo = {
 	name: 'Jenny Wang',
 	petName: 'Andrew',
-	paws: 50 
+	paws: 50
 };
 
 const nearbyRequests = [
-	{ id: '1', owner: 'Alex', petType: 'Dog', petName: 'Buddy', date: 'March 5' },
-	{ id: '2', owner: 'Jamie', petType: 'Cat', petName: 'Whiskers', date: 'March 8' }
+	{
+		id: '1',
+		owner: 'Alex',
+		pets: [{ type: 'Dog', name: 'Buddy' }],
+		date: 'March 5',
+		time: '1:30pm - 4:00pm',
+		distance: '3 miles',
+		location: 'Central Park Area'
+	},
+	{
+		id: '2',
+		owner: 'Jamie',
+		pets: [
+			{ type: 'Cat', name: 'Whiskers' },
+			{ type: 'Parrot', name: 'Kiwi' },
+			{ type: 'Rabbit', name: 'Fluffy' },
+			{ type: 'Fish', name: 'Nemo' },
+			{ type: 'Turtle', name: 'Shelly' }
+		],
+		date: 'March 8',
+		time: '10:00am - 3:00pm',
+		distance: '1.5 miles',
+		location: 'Uptown Area'
+	},
+	{
+		id: '3',
+		owner: 'Taylor',
+		pets: [{ type: 'Cat', name: 'Shadow' }],
+		date: 'March 9',
+		time: '2:00pm - 6:00pm',
+		distance: '4 miles',
+		location: 'Downtown Area'
+	}
+	// ...add more requests as needed
 ];
 
-const HomeScreen = () => {
+const HomeScreen = ({navigation}) => {
 	const [isDialogVisible, setIsDialogVisible] = useState(false);
 
 	const handleRequestSitter = () => {
 		console.log('Request Pet Sitter button tapped');
+		navigation.navigate('RequestPetSitterScreen')
 	};
 
+	const handleViewDetails = id => {
+		console.log(`View Details button tapped: ${id}`);
+	};
+
+	const handleDecline = id => {
+		console.log(`Declined request with id: ${id}`);
+		// Add logic to handle the decline action here
+	};
 	return (
 		<SafeAreaView style={styles.safeArea}>
 			<ScrollView style={styles.container}>
-				<View style={styles.profileContainer}>
-					<Avatar.Text size={40} label='JW' style={styles.avatar} />
-					<View style={styles.userInfo}>
-						<Text style={styles.greeting}>Hi {userInfo.petName}'s mom!</Text>
-						<TouchableOpacity onPress={() => setIsDialogVisible(true)}>
-							<Text style={styles.paws}>Paws: {userInfo.paws}</Text>
-						</TouchableOpacity>
+				<View style={styles.userInfoContainer}>
+					<Avatar.Text size={48} label='JW' style={styles.avatar} />
+					<View style={styles.userInfoText}>
+						<Text style={styles.greeting}>Hi {userInfo.name}!</Text>
+						<View style={styles.pawsInfo}>
+							<MaterialCommunityIcons name='paw' size={20} color='#4b5563' />
+							<Text style={styles.pawsCount}>{userInfo.paws} Paws</Text>
+						</View>
 					</View>
 				</View>
-
 				<Title style={styles.sectionTitle}>Nearby Pet Sitting Requests</Title>
+
 				{nearbyRequests.map(request => (
 					<Card key={request.id} style={styles.card}>
-						<Card.Title title={request.owner} subtitle={`${request.petType} - ${request.petName}`} />
+						<Card.Title
+							title={request.owner}
+							subtitle={<Text style={{ fontWeight: 'bold' }}>{request.date}</Text>}
+							left={props => <Avatar.Icon {...props} icon='paw' />}
+							leftStyle={{ marginRight: 8 }}
+						/>
 						<Card.Content>
-							<Paragraph>Date Needed: {request.date}</Paragraph>
+							<Paragraph>
+								<MaterialCommunityIcons name='paw' size={16} />
+								{request.pets.map(pet => ` ${pet.type} - ${pet.name}`).join(',')}
+							</Paragraph>
+							<Paragraph>
+								<MaterialCommunityIcons name='clock-outline' size={16} />
+								{` ${request.time}`}
+							</Paragraph>
+							<Paragraph>
+								<MaterialCommunityIcons name='map-marker' size={16} />
+								{` ${request.distance} - ${request.location} `}
+							</Paragraph>
 						</Card.Content>
-						<Card.Actions>
-							<Button>View Details</Button>
+						<Divider />
+						<Card.Actions style={styles.cardActions}>
+							<Button
+								mode='text'
+								onPress={() => handleDecline(request.id)}
+							>
+								<Text style={{ color: 'red' }}>Decline</Text>
+							</Button>
+							<Button mode='text' onPress={() => handleViewDetails(request.id)}>
+								View Details
+							</Button>
 						</Card.Actions>
 					</Card>
 				))}
@@ -76,26 +144,32 @@ const styles = StyleSheet.create({
 		flex: 1,
 		padding: 10
 	},
-	profileContainer: {
+	userInfoContainer: {
 		flexDirection: 'row',
 		alignItems: 'center',
-		padding: 10
+		padding: 10,
+		backgroundColor: '#f3f4f6' // A subtle background color
 	},
 	avatar: {
-		backgroundColor: '#6200ee'
+		marginRight: 10
 	},
-	userInfo: {
-		marginLeft: 10
+	userInfoText: {
+		flex: 1
 	},
 	greeting: {
-		fontSize: 16,
 		fontWeight: 'bold',
-		color: '#6200ee'
+		fontSize: 18,
+		color: '#111827' // A color that stands out
 	},
-	paws: {
+	pawsInfo: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		marginTop: 4
+	},
+	pawsCount: {
+		marginLeft: 5,
 		fontSize: 16,
-		color: '#6200ee',
-		textDecorationLine: 'underline'
+		color: '#6b7280' // A softer color for less emphasis
 	},
 	card: {
 		marginBottom: 10
@@ -109,6 +183,10 @@ const styles = StyleSheet.create({
 		width: '60%',
 		alignSelf: 'center',
 		backgroundColor: '#6200ee' // Use a color that stands out
+	},
+	cardActions: {
+		justifyContent: 'space-between',
+		padding: 8
 	}
 });
 
