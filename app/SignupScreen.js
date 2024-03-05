@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Make sur
 import { auth, db } from '../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import * as ImagePicker from 'expo-image-picker';
 
 const SignupScreen = ({ navigation }) => {
 	const [email, setEmail] = useState('');
@@ -15,23 +16,59 @@ const SignupScreen = ({ navigation }) => {
 	const [petName, setPetName] = useState('');
 	const [petType, setPetType] = useState('');
 	const [petBreed, setPetBreed] = useState('');
-	const [location, setLocation] = useState('');
-	const [petInfo, setPetInfo] = useState('');
-	const [availability, setAvailability] = useState('');
-	const [emergencyContact, setEmergencyContact] = useState('');
-	const [aboutMe, setAboutMe] = useState('');
-	const [preferences, setPreferences] = useState('');
 	const [currentStep, setCurrentStep] = useState(1); // Start at the first step
 
+	const validateBasicInfo = () => {
+		if (!username || !email || !password) {
+			// Display an alert or some form of feedback to the user
+			alert('Please fill out all required fields: Username, Email, and Password.');
+			return false;
+		}
+
+		return true;
+	};
+
+	const handleNext = () => {
+		if (currentStep === 1) {
+			const isValid = validateBasicInfo();
+			if (!isValid) return; // Stop the function if validation fails
+		}
+
+		// Proceed to the next step if validation passes or it's not the first step
+		setCurrentStep(currentStep + 1);
+	};
+
+	const pickImage = async () => {
+		// Request the permission to access the photo library
+		const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+		if (status !== 'granted') {
+			alert('Sorry, we need camera roll permissions to make this work!');
+			return;
+		}
+
+		// Launch the picker to select an image
+		let result = await ImagePicker.launchImageLibraryAsync({
+			mediaTypes: ImagePicker.MediaTypeOptions.Images,
+			allowsEditing: true,
+			aspect: [1, 1],
+			quality: 1
+		});
+		console.log(result);
+
+		if (!result.canceled) {
+			const imageUri = result.assets[0].uri;
+			setProfilePicture(imageUri);
+		}
+	};
 	const renderStepContent = step => {
 		switch (step) {
 			case 1:
 				return (
 					<View>
-						<TextInput label='Username' value={username} onChangeText={setUsername} style={styles.input} mode='outlined' />
-						<TextInput label='Email' value={email} onChangeText={setEmail} style={styles.input} mode='outlined' />
-						<TextInput label='Password' value={password} onChangeText={setPassword} secureTextEntry style={styles.input} mode='outlined' />
-						<Button mode='contained' onPress={() => setCurrentStep(currentStep + 1)} style={styles.button}>
+						<TextInput label='Username *' value={username} onChangeText={setUsername} style={styles.input} mode='outlined' />
+						<TextInput label='Email *' value={email} onChangeText={setEmail} style={styles.input} mode='outlined' />
+						<TextInput label='Password *' value={password} onChangeText={setPassword} secureTextEntry style={styles.input} mode='outlined' />
+						<Button mode='contained' onPress={handleNext} style={styles.button}>
 							Next
 						</Button>
 					</View>
@@ -39,18 +76,18 @@ const SignupScreen = ({ navigation }) => {
 			case 2:
 				return (
 					<View>
-						<TouchableOpacity
-							onPress={() => {
-								/* Logic to add profile picture */
-							}}
-						>
-							<Avatar.Icon size={80} icon='camera' style={styles.avatar} />
+						<TouchableOpacity onPress={pickImage}>
+							{profilePicture ? (
+								<Avatar.Image size={80} source={{ uri: profilePicture }} style={styles.avatar} />
+							) : (
+								<Avatar.Icon size={80} icon='camera' style={styles.avatar} />
+							)}
 						</TouchableOpacity>
-						<TextInput label='Age' value={age} onChangeText={setAge} keyboardType='numeric' style={styles.input} mode='outlined' />
+						<TextInput label='Age (optional)' value={age} onChangeText={setAge} keyboardType='numeric' style={styles.input} mode='outlined' />
 						<Button mode='contained' onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
 							Back
 						</Button>
-						<Button mode='contained' onPress={() => setCurrentStep(currentStep + 1)} style={styles.button}>
+						<Button mode='contained' onPress={handleNext} style={styles.button}>
 							Next
 						</Button>
 					</View>
@@ -58,9 +95,9 @@ const SignupScreen = ({ navigation }) => {
 			case 3:
 				return (
 					<View>
-						<TextInput label='Pet Name' value={petName} onChangeText={setPetName} style={styles.input} mode='outlined' />
-						<TextInput label='Pet Type (e.g., Dog, Cat)' value={petType} onChangeText={setPetType} style={styles.input} mode='outlined' />
-						<TextInput label='Breed' value={petBreed} onChangeText={setPetBreed} style={styles.input} mode='outlined' />
+						<TextInput label='Pet Name (optional)' value={petName} onChangeText={setPetName} style={styles.input} mode='outlined' />
+						<TextInput label='Pet Type (e.g., Dog, Cat) (optional)' value={petType} onChangeText={setPetType} style={styles.input} mode='outlined' />
+						<TextInput label='Breed (optional)' value={petBreed} onChangeText={setPetBreed} style={styles.input} mode='outlined' />
 						<Button mode='contained' onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
 							Back
 						</Button>
@@ -85,13 +122,12 @@ const SignupScreen = ({ navigation }) => {
 			await setDoc(doc(db, 'users', user.uid), {
 				username,
 				email,
-				location,
-				petInfo,
-				availability,
-				emergencyContact,
-				aboutMe,
-				preferences
-				// Include other fields as necessary
+				password,
+				profilePicture,
+				age,
+				petName,
+				petType,
+				petBreed,
 			});
 			navigation.replace('MainApp');
 		} catch (error) {
@@ -115,11 +151,15 @@ const SignupScreen = ({ navigation }) => {
 	);
 };
 const styles = StyleSheet.create({
+	avatar: {
+		alignSelf: 'center',
+		marginBottom: 20
+	},
 	container: {
 		flex: 1,
 		justifyContent: 'center',
 		// alignItems: 'center',
-		padding: 20,
+		padding: 20
 		// paddingTop: 80
 	},
 	input: {
@@ -133,7 +173,7 @@ const styles = StyleSheet.create({
 		marginTop: 20,
 		padding: 0
 	},
-	
+
 	input: {
 		marginBottom: 10
 	},
