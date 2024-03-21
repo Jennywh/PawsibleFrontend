@@ -96,7 +96,13 @@ const SignupScreen = ({ navigation }) => {
 				return (
 					<View>
 						<TextInput label='Pet Name (optional)' value={petName} onChangeText={setPetName} style={styles.input} mode='outlined' />
-						<TextInput label='Pet Type (e.g., Dog, Cat) (optional)' value={petType} onChangeText={setPetType} style={styles.input} mode='outlined' />
+						<TextInput
+							label='Pet Type (e.g., Dog, Cat) (optional)'
+							value={petType}
+							onChangeText={setPetType}
+							style={styles.input}
+							mode='outlined'
+						/>
 						<TextInput label='Breed (optional)' value={petBreed} onChangeText={setPetBreed} style={styles.input} mode='outlined' />
 						<Button mode='contained' onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
 							Back
@@ -122,12 +128,12 @@ const SignupScreen = ({ navigation }) => {
 			await setDoc(doc(db, 'users', user.uid), {
 				username,
 				email,
-				password,
 				profilePicture,
 				age,
 				petName,
 				petType,
 				petBreed,
+				paws: 50
 			});
 			navigation.replace('MainApp');
 		} catch (error) {

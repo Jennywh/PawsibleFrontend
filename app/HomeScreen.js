@@ -1,14 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Avatar, Card, Title, Paragraph, Button, Dialog, Portal, Text, IconButton, Divider } from 'react-native-paper';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../firebaseConfig';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 // Fake Data
-const userInfo = {
-	name: 'Jenny Wang',
-	petName: 'Andrew',
-	paws: 50
-};
 
 const nearbyRequests = [
 	{
@@ -47,12 +45,40 @@ const nearbyRequests = [
 	// ...add more requests as needed
 ];
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = ({ navigation }) => {
+	const [userDetails, setUserDetails] = useState({ username: '', email: '', paws: 0 });
 	const [isDialogVisible, setIsDialogVisible] = useState(false);
+	useEffect(() => {
+		const unsubscribe = onAuthStateChanged(auth, async user => {
+			if (user) {
+				const uid = user.uid;
+				try {
+					const userDoc = await getDoc(doc(db, 'users', uid));
+					if (userDoc.exists()) {
+						const userData = userDoc.data();
+						setUserDetails({
+							username: userData.username || '',
+							email: user.email || '',
+							paws: userData.paws || 50 // Assuming paws data is stored and defaulting to 50 if not present
+						});
+					} else {
+						console.log('No such document!');
+					}
+				} catch (error) {
+					console.error('Error fetching user details:', error);
+				}
+			} else {
+				console.log('User is signed out');
+			}
+		});
+
+		// Cleanup subscription on unmount
+		return unsubscribe;
+	}, []);
 
 	const handleRequestSitter = () => {
 		console.log('Request Pet Sitter button tapped');
-		navigation.navigate('RequestPetSitterScreen')
+		navigation.navigate('RequestPetSitterScreen');
 	};
 
 	const handleViewDetails = id => {
@@ -69,10 +95,10 @@ const HomeScreen = ({navigation}) => {
 				<View style={styles.userInfoContainer}>
 					<Avatar.Text size={48} label='JW' style={styles.avatar} />
 					<View style={styles.userInfoText}>
-						<Text style={styles.greeting}>Hi {userInfo.name}!</Text>
+						<Text style={styles.greeting}>Hi {userDetails.username}!</Text>
 						<View style={styles.pawsInfo}>
 							<MaterialCommunityIcons name='paw' size={20} color='#4b5563' />
-							<Text style={styles.pawsCount}>{userInfo.paws} Paws</Text>
+							<Text style={styles.pawsCount}>{userDetails.paws} Paws</Text>
 						</View>
 					</View>
 				</View>
@@ -102,10 +128,7 @@ const HomeScreen = ({navigation}) => {
 						</Card.Content>
 						<Divider />
 						<Card.Actions style={styles.cardActions}>
-							<Button
-								mode='text'
-								onPress={() => handleDecline(request.id)}
-							>
+							<Button mode='text' onPress={() => handleDecline(request.id)}>
 								<Text style={{ color: 'red' }}>Decline</Text>
 							</Button>
 							<Button mode='text' onPress={() => handleViewDetails(request.id)}>
