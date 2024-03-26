@@ -3,6 +3,8 @@ import { View, ScrollView, SafeAreaView } from 'react-native';
 import { TextInput, Button, Switch, Text } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { StyleSheet } from 'react-native';
+import { auth, db } from '../firebaseConfig';
+import { collection, addDoc, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 const RequestPetSitterScreen = () => {
 	const [petDetails, setPetDetails] = useState({
@@ -50,18 +52,28 @@ const RequestPetSitterScreen = () => {
 		setEndTime(selectedTime || endTime);
 	};
 
-	const handleSubmit = () => {
+	const handleSubmit = async () => {
 		const requestData = {
-			petDetails,
-			serviceDate,
-			startTime,
-			endTime,
-			additionalInfo,
-			termsAccepted
+		  petDetails,
+		  serviceDate,
+		  startTime,
+		  endTime,
+		  additionalInfo,
+		  termsAccepted,
+		  creatorId: auth.currentUser.uid, 
 		};
-		console.log(requestData);
-		// Here you would typically send this data to your server or handle it as needed
-	};
+		
+		try {
+		  // Create a new document in the 'requests' collection with the request data
+		  const requestRef = await addDoc(collection(db, 'requests'), requestData);
+		  console.log('Request created with ID:', requestRef.id);
+		  // Handle navigation or success feedback as needed
+		} catch (error) {
+		  console.error('Error creating request or updating user document:', error);
+		  alert(error.message || 'An error occurred. Please try again.');
+		}
+	  };
+	  
 	return (
 		<ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
 			<View style={styles.section}>

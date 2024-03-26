@@ -49,16 +49,16 @@ const HomeScreen = ({ navigation }) => {
 	const [userDetails, setUserDetails] = useState({ username: '', email: '', paws: 0 });
 	const [isDialogVisible, setIsDialogVisible] = useState(false);
 	useEffect(() => {
-		const unsubscribe = onAuthStateChanged(auth, async user => {
-			if (user) {
-				const uid = user.uid;
+		if (auth.currentUser) {
+			const uid = auth.currentUser.uid;
+			async function fetchUserDetails() {
 				try {
 					const userDoc = await getDoc(doc(db, 'users', uid));
 					if (userDoc.exists()) {
 						const userData = userDoc.data();
 						setUserDetails({
 							username: userData.username || '',
-							email: user.email || '',
+							email: auth.currentUser.email || '',
 							paws: userData.paws || 50 // Assuming paws data is stored and defaulting to 50 if not present
 						});
 					} else {
@@ -67,13 +67,12 @@ const HomeScreen = ({ navigation }) => {
 				} catch (error) {
 					console.error('Error fetching user details:', error);
 				}
-			} else {
-				console.log('User is signed out');
 			}
-		});
 
-		// Cleanup subscription on unmount
-		return unsubscribe;
+			fetchUserDetails();
+		} else {
+			console.log('User is not signed in');
+		}
 	}, []);
 
 	const handleRequestSitter = () => {
