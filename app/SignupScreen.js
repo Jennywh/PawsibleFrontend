@@ -26,7 +26,6 @@ const SignupScreen = ({ navigation }) => {
   const [contactInfo, setContactInfo] = useState({
     fullName: '',
     phoneNumber: '',
-    email: ''
   });
 
   const handleAddressChange = (field, value) => {
@@ -45,10 +44,21 @@ const SignupScreen = ({ navigation }) => {
 
   const validateBasicInfo = () => {
     if (!username || !email || !password) {
-      // Display an alert or some form of feedback to the user
-      alert('Please fill out all required fields: Username, Email, and Password.');
+      alert('Please fill out all required fields.');
       return false;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic regex for email validation
+    if (!email || !emailRegex.test(email)) {
+      alert('Please enter a valid email address.');
+      return false;
+    }
+
+    if (!password || password.length < 6) {
+      alert('Please enter a password with at least 6 characters.');
+      return false;
+    }
+    
     return true;
   };
 
@@ -73,14 +83,6 @@ const SignupScreen = ({ navigation }) => {
       const isValid = validateBasicInfo();
       if (!isValid) return; // Stop the function if validation fails
     }
-
-    if (currentStep === 2) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Basic regex for email validation
-      if (!contactInfo.email || !emailRegex.test(contactInfo.email)) {
-        alert('Please enter a valid email address in contact information.');
-        return false;
-      }
-    }  
 
     // Proceed to the next step if validation passes or it's not the first step
     setCurrentStep(currentStep + 1);
@@ -141,16 +143,6 @@ const SignupScreen = ({ navigation }) => {
               mode="outlined"
               keyboardType="phone-pad"
             />
-            <TextInput
-              label="Email Address"
-              value={contactInfo.email}
-              onChangeText={(value) => handleContactInfoChange('email', value)}
-              style={styles.input}
-              mode="outlined"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
             <Button mode="contained" onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
               Back
             </Button>
