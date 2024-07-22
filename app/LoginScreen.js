@@ -56,6 +56,10 @@ const LoginScreen = ({ navigation }) => {
 			<Button onPress={() => navigation.replace('SignUp')} style={styles.linkButton}>
 				Go to Sign Up
 			</Button>
+			<Button onPress={() => navigation.replace('MainApp')} style={styles.linkButton}>
+				testing entrance
+			</Button>
+
 			<Snackbar
 				visible={visible}
 				onDismiss={onDismissSnackBar}

@@ -13,7 +13,7 @@ const SignupScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // Start at the first step
-  const [pets, setPets] = useState([{ name: '', type: '', careInstructions: '' }]);
+  const [pets, setPets] = useState([]);
 
   const [address, setAddress] = useState({
     street: '',
@@ -63,7 +63,7 @@ const SignupScreen = ({ navigation }) => {
   };
 
   const addPet = () => {
-    setPets([...pets, { name: '', type: '', breed: '' }]);
+    setPets([...pets, { name: '', type: '', breed: '', careInstructions: ''}]);
   };
 
   const removePet = (index) => {
@@ -228,7 +228,7 @@ const SignupScreen = ({ navigation }) => {
             ))}
 
             <Button icon="plus-circle" mode="contained" onPress={addPet} style={styles.button}>
-              Add Another Pet
+              Add Pet
             </Button>
 
             <Button mode="contained" onPress={() => setCurrentStep(currentStep - 1)} style={styles.button}>
