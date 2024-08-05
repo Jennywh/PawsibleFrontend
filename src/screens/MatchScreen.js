@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, TouchableOpacity, SafeAreaView } from 're
 import { Avatar, Card, Title, Paragraph, Button, Dialog, Portal, Text, IconButton, Divider } from 'react-native-paper';
 import { MaterialCommunityIcons } from 'react-native-vector-icons';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 // Fake Data
@@ -42,10 +42,9 @@ const nearbyRequests = [
 		distance: '4 miles',
 		location: 'Downtown Area'
 	}
-	// ...add more requests as needed
 ];
 
-const HomeScreen = ({ navigation }) => {
+const MatchScreen = ({ navigation }) => {
 	const [userDetails, setUserDetails] = useState({ username: '', email: '', paws: 0 });
 	const [isDialogVisible, setIsDialogVisible] = useState(false);
 	useEffect(() => {
@@ -212,4 +211,4 @@ const styles = StyleSheet.create({
 	}
 });
 
-export default HomeScreen;
+export default MatchScreen;
